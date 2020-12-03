@@ -23,10 +23,24 @@ func Index(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 }
 
 func Notification_handler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-    log.Printf("Data for org - %s\n\n", ps.ByName("org_pk"))
-    printExtras(r)
-    w.Header().Set("Content-Type", "application/json")
+    var parsed_body interface{}
 
+//     log.Printf("Data for org - %s\n\n", ps.ByName("org_pk"))
+//     printExtras(r)
+    fmt.Printf("\n---------- ORG_PK ----- (%s)\n" , ps.ByName("org_pk") )
+    fmt.Print("-------- EVENT DATA -----------------\n")
+
+    d := json.NewDecoder(r.Body)
+    err := d.Decode(&parsed_body)
+
+    json_res, err := json.MarshalIndent(parsed_body, "", "  ")
+    fmt.Println(string(json_res))
+
+    fmt.Printf("\n.......................\n")
+    fmt.Printf("\nSending payload to queuing service to further process by connector.......\n")
+    fmt.Printf("\n.......................\n")
+
+    w.Header().Set("Content-Type", "application/json")
     STATUS_OK_JSON, err := json.Marshal(map[string]string{
         "status": "success",
     })
@@ -70,6 +84,10 @@ func printExtras(r *http.Request){
     // Print Body
     d := json.NewDecoder(r.Body)
     err := d.Decode(&parsed_body)
+
+    json_res, err := json.MarshalIndent(parsed_body, "", "  ")
+//     fmt.Println(string(json_res), err)
+    fmt.Println(string(json_res))
 
     if err != nil {
         if err != io.EOF{
